@@ -2,8 +2,8 @@ header:
   frame_id: world_ned
   seq: 0
   stamp:
-    nsecs: 745698928
-    secs: 1753171691
+    nsecs: 473481893
+    secs: 1753175695
 points:
 - accelerations:
   - 0.0

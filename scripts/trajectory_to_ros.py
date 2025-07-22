@@ -2,6 +2,7 @@
 """
 轨迹格式转换器
 将主机生成的JSON轨迹转换为ROS格式，供虚拟机中的uuv_trajectory_control使用
+增强版：包含四元数验证和错误处理
 """
 
 import json
@@ -39,11 +40,31 @@ class TrajectoryConverter:
         print(f"轨迹包含 {len(trajectory_data['waypoints'])} 个航点")
         return trajectory_data
     
+    def validate_quaternion(self, quat: List[float]) -> List[float]:
+        """验证并修正四元数"""
+        # 检查是否全零
+        if all(abs(q) < 1e-6 for q in quat):
+            print("警告：检测到全零四元数，使用单位四元数代替")
+            return [0.0, 0.0, 0.0, 1.0]
+        
+        # 归一化四元数
+        norm = np.sqrt(sum(q**2 for q in quat))
+        if abs(norm - 1.0) > 1e-6:
+            print(f"警告：四元数未归一化 (norm={norm:.6f})，进行归一化")
+            if norm > 1e-6:
+                return [q/norm for q in quat]
+            else:
+                print("警告：四元数模长接近零，使用单位四元数")
+                return [0.0, 0.0, 0.0, 1.0]
+        
+        return quat
+    
     def yaw_to_quaternion(self, yaw: float) -> List[float]:
-        """将偏航角转换为四元数"""
+        """将偏航角转换为四元数并验证"""
         # 只考虑Z轴旋转（偏航）
         half_yaw = yaw * 0.5
-        return [0.0, 0.0, np.sin(half_yaw), np.cos(half_yaw)]
+        quat = [0.0, 0.0, np.sin(half_yaw), np.cos(half_yaw)]
+        return self.validate_quaternion(quat)
     
     def convert_to_ros_trajectory(self, json_trajectory: Dict[str, Any]) -> Dict[str, Any]:
         """转换为ROS轨迹格式"""
@@ -167,8 +188,17 @@ class TrajectoryConverter:
             rel_trajectory_path = rel_trajectory_path.replace('src/underwater_coverage_planning/', '', 1)
         
         # 获取发布器脚本的文件名（不包含路径）
-        base_name = os.path.basename(trajectory_file).replace('_ros.yaml', '')
-        publisher_script_name = f"{base_name}_publisher.py"
+        base_name = os.path.basename(trajectory_file)
+        if base_name.endswith('_ros_fixed.yaml'):
+            base_name = base_name.replace('_ros_fixed.yaml', '')
+            publisher_script_name = f"{base_name}_publisher_fixed.py"
+        elif base_name.endswith('_ros.yaml'):
+            base_name = base_name.replace('_ros.yaml', '')
+            publisher_script_name = f"{base_name}_publisher.py"
+        else:
+            # 处理其他情况
+            base_name = base_name.replace('.yaml', '').replace('.json', '')
+            publisher_script_name = f"{base_name}_publisher.py"
         
         launch_content = f'''<?xml version="1.0"?>
 <launch>
@@ -193,9 +223,10 @@ class TrajectoryConverter:
     <node name="trajectory_publisher" 
           pkg="underwater_coverage_planning"
           type="{publisher_script_name}"
-          output="screen">
+          output="screen"
+          launch-prefix="bash -c 'sleep 3; $0 $@' ">
         <param name="trajectory_file" value="$(find underwater_coverage_planning)/{rel_trajectory_path}"/>
-        <param name="publish_rate" value="10.0"/>
+        <param name="publish_rate" value="1.0"/>
     </node>
     
     <!-- 使用UUV轨迹控制器组合 -->
@@ -313,10 +344,11 @@ class TrajectoryConverter:
         with open(publisher_file, 'w') as f:
             f.write(f"""#!/usr/bin/env python3
 \"\"\"
-ROS轨迹发布节点
+ROS轨迹发布节点 - 增强版
 读取YAML轨迹文件并发布到ROS话题
 支持命名空间参数，与compact_terrain_rexrov.launch兼容
 修复时间戳问题，确保轨迹点时间戳严格递增
+增加四元数验证和错误处理
 \"\"\"
 
 import rospy
@@ -332,6 +364,10 @@ import sys
 class TrajectoryPublisher:
     def __init__(self):
         rospy.init_node('trajectory_publisher')
+        
+        # 等待机器人初始化
+        rospy.loginfo("等待机器人初始化...")
+        rospy.sleep(5.0)  # 延迟5秒确保机器人完全初始化
         
         # 参数
         trajectory_file = rospy.get_param('~trajectory_file', 'trajectory.yaml')
@@ -374,6 +410,25 @@ class TrajectoryPublisher:
             rospy.logerr(f"加载轨迹文件失败: {{e}}")
             sys.exit(1)
     
+    def validate_quaternion(self, quat):
+        \"\"\"验证并修正四元数\"\"\"
+        # 检查是否全零
+        if all(abs(q) < 1e-6 for q in quat):
+            rospy.logwarn("检测到全零四元数，使用单位四元数代替")
+            return [0.0, 0.0, 0.0, 1.0]
+        
+        # 归一化四元数
+        norm = np.sqrt(sum(q**2 for q in quat))
+        if abs(norm - 1.0) > 1e-6:
+            rospy.logwarn(f"四元数未归一化 (norm={{norm:.6f}})，进行归一化")
+            if norm > 1e-6:
+                return [q/norm for q in quat]
+            else:
+                rospy.logwarn("四元数模长接近零，使用单位四元数")
+                return [0.0, 0.0, 0.0, 1.0]
+        
+        return quat
+    
     def publish_trajectory_once(self):
         \"\"\"发布轨迹一次\"\"\"
         if not self.trajectory:
@@ -404,11 +459,12 @@ class TrajectoryPublisher:
             point.pose.position.y = point_data['positions'][1]
             point.pose.position.z = point_data['positions'][2]
             
-            # 姿态 - 从欧拉角转换为四元数
+            # 姿态 - 从欧拉角转换为四元数，并验证
             roll = point_data['positions'][3]
             pitch = point_data['positions'][4]
             yaw = point_data['positions'][5]
             quat = trans.quaternion_from_euler(roll, pitch, yaw)
+            quat = self.validate_quaternion(quat)
             point.pose.orientation.x = quat[0]
             point.pose.orientation.y = quat[1]
             point.pose.orientation.z = quat[2]
