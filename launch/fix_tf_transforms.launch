@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+        TF转换修复launch文件
+        添加缺失的静态TF转换以支持轨迹跟踪
+        在启动轨迹控制之前运行此文件
+    -->
+    
+    <!-- 参数设置 -->
+    <arg name="uuv_name" default="rexrov"/>
+    
+    <!-- 1. world到world_ned的转换 (ENU到NED) -->
+    <!-- 
+        ENU (East-North-Up) 到 NED (North-East-Down) 的转换
+        需要绕Z轴旋转90度，然后绕X轴旋转180度
+        等效于: roll=π, pitch=0, yaw=π/2
+    -->
+    <node pkg="tf" type="static_transform_publisher" 
+          name="world_to_world_ned" 
+          args="0 0 0 3.14159 0 1.5708 world world_ned 50" />
+    
+    <!-- 2. rexrov/base_link到rexrov/base_link_ned的转换 -->
+    <!-- 
+        机器人本地坐标系的ENU到NED转换
+        同样的旋转变换
+    -->
+    <node pkg="tf" type="static_transform_publisher" 
+          name="base_link_to_base_link_ned" 
+          args="0 0 0 3.14159 0 1.5708 $(arg uuv_name)/base_link $(arg uuv_name)/base_link_ned 50" />
+    
+    <!-- 3. 如果缺少world到base_link的连接，添加一个静态转换 -->
+    <!-- 
+        这个转换通常由定位系统提供，但在某些情况下可能缺失
+        使用机器人的初始位置作为静态转换
+        注意：这只是临时解决方案，实际应用中应该有动态定位
+    -->
+    <node pkg="tf" type="static_transform_publisher" 
+          name="world_to_base_footprint" 
+          args="-200 -200 -22 0 0 0 world $(arg uuv_name)/base_footprint 50" />
+    
+    <!-- 4. base_footprint到base_stabilized的转换 -->
+    <node pkg="tf" type="static_transform_publisher" 
+          name="base_footprint_to_base_stabilized" 
+          args="0 0 0 0 0 0 $(arg uuv_name)/base_footprint $(arg uuv_name)/base_stabilized 50" />
+    
+    <!-- 5. base_stabilized到base_link的转换 -->
+    <node pkg="tf" type="static_transform_publisher" 
+          name="base_stabilized_to_base_link" 
+          args="0 0 0 0 0 0 $(arg uuv_name)/base_stabilized $(arg uuv_name)/base_link 50" />
+    
+    <!-- 信息输出 -->
+    <node pkg="rostopic" type="rostopic" name="tf_info" 
+          args="echo /tf_static -n 1" output="screen" 
+          launch-prefix="bash -c 'sleep 3; $0 $@'" />
+    
+    <!-- 使用说明 -->
+    <!-- 
+        使用方法:
+        1. 启动环境: roslaunch underwater_coverage_planning compact_terrain_rexrov.launch
+        2. 启动TF修复: roslaunch underwater_coverage_planning fix_tf_transforms.launch
+        3. 启动轨迹控制: roslaunch underwater_coverage_planning trajectory_20250720_121855_launch.launch
+        4. 验证TF树: python3 generate_tf_frames.py
+    -->
+</launch>

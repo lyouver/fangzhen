@@ -1,0 +1,37 @@
+digraph G {
+"rexrov/base_link" -> "rexrov/base_link_ned"[label="Broadcaster: /gazebo\nAverage rate: 876.946 Hz\nMost recent transform: 406.572 ( -0.049 sec old)\nBuffer length: 4.047 sec\n"];
+"rexrov/base_stabilized" -> "rexrov/base_link"[label="Broadcaster: /base_stabilized_to_base_link\nAverage rate: 39.890 Hz\nMost recent transform: 406.564 ( -0.041 sec old)\nBuffer length: 4.011 sec\n"];
+"world" -> "world_ned"[label="Broadcaster: /world_to_world_ned\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 406.523 sec old)\nBuffer length: 0.000 sec\n"];
+"rexrov/base_footprint" -> "rexrov/base_stabilized"[label="Broadcaster: /base_footprint_to_base_stabilized\nAverage rate: 37.157 Hz\nMost recent transform: 406.563 ( -0.040 sec old)\nBuffer length: 4.010 sec\n"];
+"world" -> "rexrov/base_footprint"[label="Broadcaster: /world_to_base_footprint\nAverage rate: 38.961 Hz\nMost recent transform: 406.557 ( -0.034 sec old)\nBuffer length: 4.004 sec\n"];
+"rexrov/imu_link" -> "rexrov/imu_link_ned"[label="Broadcaster: /gazebo\nAverage rate: 50.251 Hz\nMost recent transform: 406.513 ( 0.010 sec old)\nBuffer length: 3.980 sec\n"];
+"rexrov/base_link" -> "rexrov/imu_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/camera_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/camera_link" -> "rexrov/camera_link_optical"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/cameraleft_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/cameraleft_link" -> "rexrov/cameraleft_link_optical"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/cameraright_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/cameraright_link" -> "rexrov/cameraright_link_optical"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/dvl_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/dvl_link" -> "rexrov/dvl_sonar0_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/dvl_link" -> "rexrov/dvl_sonar1_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/dvl_link" -> "rexrov/dvl_sonar2_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/dvl_link" -> "rexrov/dvl_sonar3_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/gps_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/magnetometer_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/pose_sensor_link_default"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/pressure_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/rpt_link"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_0"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_1"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_2"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_3"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_4"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_5"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_6"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+"rexrov/base_link" -> "rexrov/thruster_7"[label="Broadcaster: /rexrov/robot_state_publisher\nAverage rate: 5.208 Hz\nMost recent transform: 406.401 ( 0.122 sec old)\nBuffer length: 3.840 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 406.523"[ shape=plaintext ] ;
+ }->"world";
+}

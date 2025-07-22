@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+        只启动轨迹控制器，不包含轨迹发布器
+        用于手动测试轨迹跟踪
+    -->
+    
+    <!-- 参数设置 -->
+    <arg name="uuv_name" default="rexrov"/>
+    <arg name="model_name" default="rexrov"/>
+    <arg name="use_ned_frame" default="true"/>
+    <arg name="model_params_file" default="$(find uuv_trajectory_control)/config/models/rexrov/params.yaml"/>
+    
+    <!-- 启动推进器管理器 -->
+    <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
+        <arg name="uuv_name" value="$(arg uuv_name)" />
+        <arg name="model_name" value="$(arg model_name)" />
+    </include>
+    
+    <!-- 使用无奇点轨迹控制器 -->
+    <node name="trajectory_controller" 
+          pkg="uuv_trajectory_control"
+          type="rov_sf_controller.py"
+          output="screen">
+        <!-- Remap necessary topics -->
+        <remap from="odom" to="$(arg uuv_name)/pose_gt"/>
+        <remap from="trajectory" to="$(arg uuv_name)/dp_controller/trajectory"/>
+        <remap from="input_trajectory" to="$(arg uuv_name)/dp_controller/input_trajectory"/>
+        <remap from="waypoints" to="$(arg uuv_name)/dp_controller/waypoints"/>
+        <remap from="error" to="$(arg uuv_name)/dp_controller/error"/>
+        <remap from="reference" to="$(arg uuv_name)/dp_controller/reference"/>
+        <remap from="thruster_output" to="$(arg uuv_name)/thruster_manager/input_stamped"/>
+        
+        <!-- 加载机器人模型参数 -->
+        <rosparam file="$(arg model_params_file)" command="load"/>
+        
+        <!-- 控制器参数 -->
+        <rosparam subst_value="true">
+          saturation: 5000
+          Kd: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+          lambda: [1.0]
+          c: [1.0]
+          inertial_frame_id: world_ned
+        </rosparam>
+    </node>
+</launch>

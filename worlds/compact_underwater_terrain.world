@@ -1,0 +1,182 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="compact_underwater_terrain">
+    
+    <!-- 全局光源 -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- 内联定义的紧凑水域模型 (444x444米) -->
+    <model name="compact_ocean_box">
+      <static>true</static>
+      <link name="link">
+        <!-- 海底基平面 - Z=-50 -->
+        <visual name="ground">
+          <cast_shadows>false</cast_shadows>
+          <pose>0 0 -50 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 444 .1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/sand.material</uri>
+              <name>UUVSimulator/SandAndStones</name>
+            </script>
+          </material>
+        </visual>
+
+        <collision name="ground">
+          <pose>0 0 -50 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 444 .1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- 水面 - Z=30 -->
+        <visual name="surface">
+          <cast_shadows>false</cast_shadows>
+          <pose>0 0 30 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 444 .1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/StaticDeepWater</name>
+            </script>
+          </material>
+        </visual>
+
+        <!-- 主水体 - 从水面到海底底部 -->
+        <visual name="main_water_body">
+          <cast_shadows>false</cast_shadows>
+          <pose>0 0 -10 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 444 80</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/StaticWater</name>
+            </script>
+          </material>
+        </visual>
+
+        <!-- 北侧水墙 -->
+        <visual name="north">
+          <cast_shadows>false</cast_shadows>
+          <pose>222 0 -10 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>.1 444 80</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/SeaWall</name>
+            </script>
+          </material>
+        </visual>
+
+        <!-- 南侧水墙 -->
+        <visual name="south">
+          <cast_shadows>false</cast_shadows>
+          <pose>-222 0 -10 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>.1 444 80</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/SeaWall</name>
+            </script>
+          </material>
+        </visual>
+
+        <!-- 东侧水墙 -->
+        <visual name="east">
+          <cast_shadows>false</cast_shadows>
+          <pose>0 -222 -10 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 .1 80</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/SeaWall</name>
+            </script>
+          </material>
+        </visual>
+
+        <!-- 西侧水墙 -->
+        <visual name="west">
+          <cast_shadows>false</cast_shadows>
+          <pose>0 222 -10 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>444 .1 80</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://Media/materials/scripts/water.material</uri>
+              <name>UUVSimulator/SeaWall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 地形配置 -->
+    <include>
+      <uri>model://sand_heightmap</uri>
+      <pose>0 0 -25 0 0 0</pose>
+    </include>
+
+    <!-- 水下海流插件 -->
+    <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
+      <namespace>hydrodynamics</namespace>
+      <constant_current>
+        <topic>current_velocity</topic>
+        <velocity>
+          <mean>0</mean>
+          <min>0</min>
+          <max>5</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </velocity>
+        <horizontal_angle>
+          <mean>0</mean>
+          <min>-3.141592653589793238</min>
+          <max>3.141592653589793238</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </horizontal_angle>
+        <vertical_angle>
+          <mean>0</mean>
+          <min>-3.141592653589793238</min>
+          <max>3.141592653589793238</max>
+          <mu>0.0</mu>
+          <noiseAmp>0.0</noiseAmp>
+        </vertical_angle>
+      </constant_current>
+    </plugin>
+
+    <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
+
+  </world>
+</sdf>

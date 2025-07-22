@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 
+    完整的紧凑水下地形覆盖规划系统 - 带轨迹可视化版本
+    解决TF冲突，包含完整水下环境，添加轨迹可视化支持
+    
+    重要：轨迹控制器使用dp_controller命名空间，轨迹发布器应将轨迹发布到：
+    - $(arg uuv_name)/dp_controller/input_trajectory
+    - $(arg uuv_name)/dp_controller/trajectory
+    
+    轨迹可视化：
+    - 使用Path显示轨迹路径
+    - 使用Marker显示轨迹点
+  -->
+  
+  <!-- 参数设置 -->
+  <arg name="uuv_name" default="rexrov"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" value="false"/>
+  <arg name="model_name" default="rexrov"/>
+  <arg name="use_ned_frame" default="true"/>
+  
+  <!-- 启动Gazebo仿真环境 -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find underwater_coverage_planning)/worlds/compact_underwater_terrain.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+    <arg name="verbose" value="false"/>
+  </include>
+
+  <!-- 发布世界NED坐标系 -->
+  <include file="$(find uuv_assistants)/launch/publish_world_ned_frame.launch"/>
+
+  <!-- 发布世界模型 -->
+  <node name="publish_world_models"
+        pkg="uuv_assistants"
+        type="publish_world_models.py"
+        output="screen">
+    <rosparam subst_value="true">
+      meshes:
+        heightmap_terrain:
+          mesh: package://uuv_gazebo_worlds/models/sand_heightmap/meshes/heightmap.dae
+          model: sand_heightmap
+          pose:
+            position: [0, 0, -25]
+    </rosparam>
+  </node>
+
+  <!-- 启动RexROV机器人 - 使用标准方式避免TF冲突 -->
+  <include file="$(find uuv_descriptions)/launch/upload_rexrov_default.launch">
+    <arg name="x" value="-200"/>
+    <arg name="y" value="-200"/>
+    <arg name="z" value="-22"/>
+    <arg name="namespace" value="$(arg uuv_name)"/>
+    <arg name="mode" value="default"/>
+    <arg name="use_ned_frame" value="true"/>
+  </include>
+   
+  <!-- 推进器管理器已移除，由轨迹控制器launch文件提供 -->
+  <!-- 键盘控制已移除，避免与轨迹控制器冲突 -->
+
+  <!-- 启动RViz可视化 - 使用新的带轨迹可视化的配置文件 -->
+  <node name="rviz" pkg="rviz" type="rviz" output="screen" 
+        args="-d $(find underwater_coverage_planning)/rviz/rexrov_trajectory.rviz"
+        launch-prefix="bash -c 'sleep 8; $0 $@' "/>
+
+  <!-- 设置全局参数，供轨迹发布器使用 -->
+  <param name="/uuv_name" value="$(arg uuv_name)" />
+
+  <!-- 启动推进器管理器 - 确保轨迹控制器有推进器接口 -->
+  <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
+    <arg name="uuv_name" value="$(arg uuv_name)" />
+    <arg name="model_name" value="$(arg model_name)" />
+  </include>
+
+  <!-- 提示信息 -->
+  <node name="usage_info" pkg="rostopic" type="rostopic" 
+        args="pub /usage_info std_msgs/String 'data: 请在另一个终端中启动轨迹控制器: roslaunch underwater_coverage_planning/scripts/guiji/trajectory_XXXXXXXX_launch.launch'" 
+        output="screen"/>
+
+</launch> 
