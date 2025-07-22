@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+        UUV Coverage Path Execution - 修复版本
+        使用简化的控制器避免ROV_SFController的回调错误
+    -->
+    
+    <!-- 参数设置 -->
+    <arg name="uuv_name" default="rexrov"/>
+    <arg name="model_name" default="rexrov"/>
+    <arg name="use_ned_frame" default="true"/>
+    <arg name="model_params_file" default="$(find uuv_trajectory_control)/config/models/rexrov/params.yaml"/>
+    
+    <!-- 推进器管理器由compact_terrain_rexrov_with_trajectory.launch提供 -->
+    
+    <!-- 加载轨迹参数 -->
+    <rosparam file="$(find underwater_coverage_planning)/scripts/guiji/trajectory_20250722_002955_ros_fixed.yaml" command="load" ns="trajectory_planner"/>
+    
+    <!-- 使用本地轨迹发布器 -->
+    <node name="trajectory_publisher" 
+          pkg="underwater_coverage_planning"
+          type="trajectory_20250722_002955_publisher_fixed.py"
+          output="screen">
+        <param name="trajectory_file" value="$(find underwater_coverage_planning)/scripts/guiji/trajectory_20250722_002955_ros_fixed.yaml"/>
+        <param name="publish_rate" value="10.0"/>
+    </node>
+    
+    <!-- 使用UUV轨迹控制器组合 -->
+    <group ns="$(arg uuv_name)">
+        <!-- 启动轨迹规划器 -->
+        <node name="dp_controller_local_planner" 
+              pkg="uuv_trajectory_control"
+              type="dp_controller_local_planner.py"
+              output="screen">
+            <rosparam subst_value="true">
+                inertial_frame_id: world_ned
+                max_forward_speed: 2.0
+                idle_radius: 10.0
+                timeout_idle_mode: 5.0
+                look_ahead_delay: 0.0
+                is_underactuated: false
+                stamped_pose_only: false
+                thrusters_only: true
+                # 插值器参数
+                lipb:
+                    max_forward_speed: 2.0
+                    interpolation_method: lipb
+                cubic:
+                    max_forward_speed: 2.0
+                    interpolation_method: cubic
+                linear:
+                    max_forward_speed: 2.0
+                    interpolation_method: linear
+            </rosparam>
+        </node>
+        
+        <!-- 使用调试控制器代替有问题的rov_sf_controller -->
+        <node name="debug_rov_controller" 
+              pkg="underwater_coverage_planning"
+              type="debug_rov_sf_controller.py"
+              output="screen">
+            <!-- Remap necessary topics -->
+            <remap from="/rexrov/pose_gt" to="pose_gt"/>
+            <remap from="/rexrov/thruster_manager/input_stamped" to="thruster_manager/input_stamped"/>
+        </node>
+    </group>
+    
+    <!-- 提示信息 -->
+    <node name="info" pkg="rostopic" type="rostopic" 
+          args="pub -1 /rosout rosgraph_msgs/Log '{level: 2, name: trajectory_controller, msg: 使用调试版控制器避免ROV_SFController回调错误, file: launch, function: info, line: 1}'" 
+          output="screen"/>
+
+</launch>
